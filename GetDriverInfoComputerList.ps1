@@ -1,4 +1,4 @@
-﻿$Computers = @("Mobile-pc","Mobile-pc")
+﻿$Computers = @("Mobile-pc")
 $Database=@()
 
 foreach ($Computer in $Computers) {
@@ -14,6 +14,10 @@ foreach ($Computer in $Computers) {
     $OSInstall = Get-WmiObject -Class win32_operatingsystem -ComputerName $Computer| Select-Object -ExpandProperty InstallDate
     $OSInstall = ([System.Management.ManagementDateTimeConverter]::ToDateTime($OSInstall)).ToString("d")
 
+    $BiosReleaseDate = Get-WmiObject -Class win32_bios -ComputerName $Computer | Select-Object -ExpandProperty ReleaseDate
+    $BiosReleaseDate = ([System.Management.ManagementDateTimeConverter]::ToDateTime($BiosReleaseDate)).ToString("d")
+
+
     $Records = Get-WmiObject -Class win32_pnpsigneddriver -ComputerName $Computer | Where-Object {(($_.Manufacturer -ne "Microsoft") -and ($_.DeviceClass -in "HDC","NET","DISPLAY","MEDIA"))} 
     $Records = $Records | Sort-Object -Property DeviceClass
 
@@ -21,6 +25,7 @@ foreach ($Computer in $Computers) {
         $CustomEvent = New-Object -TypeName PSObject
         $CustomEvent | Add-member -Type NoteProperty -Name 'Computer' -Value $Computer
         $CustomEvent | Add-member -Type NoteProperty -Name 'Model' -Value $Model
+        $CustomEvent | Add-member -Type NoteProperty -Name 'BiosDate' -Value $BiosReleaseDate
         $CustomEvent | Add-member -Type NoteProperty -Name 'OSInstallDate' -Value $OSInstall
         $CustomEvent | Add-member -Type NoteProperty -Name 'DeviceClass' -Value $Record.DeviceClass
         $CustomEvent | Add-member -Type NoteProperty -Name 'Manufacturer' -Value $Record.Manufacturer
